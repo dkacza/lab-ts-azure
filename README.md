@@ -183,6 +183,79 @@ Otwieramy PR. Mergujemy branch `db` do brancha `main`. Dzięki dołączonemu pip
 Po jego ukończeniu powinniśmy mieć działającą aplikację:
 <img width="2056" height="470" alt="Pasted image 20260109122824" src="https://github.com/user-attachments/assets/8d1c6a57-5d16-46f9-801a-76ea79147235" />
 
+### Dodanie obsługi Blob Storage
+Ostatnią implementowaną funkcjonalnością będzie eksport rekordów do pliku CSV przechowywanego w ramach chmury.
+
+#### Utworzenie Storage Account
+Usługa Blob Storage udzielana jest w ramach Storage Account. Musimy je najpierw utworzyć.
+
+1. W pasku wyszukiwania wpisujemy `storage account`. Wybieramy *Storage  accounts* z sekcji services.
+2. Wybieramy przycisk *Create*
+3. W formularzu *Create Storage Account* wybieramy następujące opcje
+    1. Resource Group: Stworzona przez nas grupa zasobów
+    2. Storage account name: proponuję `storageaccount{nr_indeksu}`
+    3. Region: `Poland Central`
+    4. Prefered Storage Type: `Azure Blob Storage or Azure Data Lake Storage Gen 2`
+    5. Primary workload: `Cloud Native`
+    6. Performance: `Standard`
+    7. Redundancy: `LRS`
+4. Klikamy *Review + create*, a po zweryfikowaniu *Create*.
+
+Po zakończeniu deploymentu powinninśmy mieć dostęp do naszego Storage Account.
+<img width="1696" height="936" alt="Pasted image 20260121114247" src="https://github.com/user-attachments/assets/0aca97cc-11f0-4b9a-9bc7-5964d90dc4ec" />
+
+#### Utworzenie kontenera
+W ramach usługi blob storage, pliki przechowywane są w kontenerach. Musimy taki utworzyć.
+
+1. W widoku Storage Account wybieramy zakładkę *Storage Browser*.
+2. Klikamy na kafelek *Blob Containers*.
+3. Wybieramy opcję *Add container* Jako nazwę proponuję: `my-first-azure-app-{nr_indeksu}-bs-container`
+4. Reszta ustawień pozostaje domyślna. Wybieramy *Create*.
+
+<img width="1718" height="494" alt="Pasted image 20260121114814" src="https://github.com/user-attachments/assets/fbb316de-0bbe-49c0-bdf8-d96bc07e19e5" />
+
+#### Połączenie kontenera blob storage z aplikacją
+Musimy wykonać szereg czynności by umożliwić aplikacji zapis plików do świeżo utworzonego kontenera.
+
+##### Dodanie zmiennych środowiskowych
+Poza istniejącymi zmiennynmi środowiskowymi w naszej aplikacji dodajemy kolejne. Uzupełniamy je według własnych wartości.
+```env
+AZURE_STORAGE_ACCOUNT_NAME=
+AZURE_STORAGE_CONTAINER_NAME=
+AZURE_STORAGE_BLOB_PREFIX=budget-exports
+```
+Proces dodawania zmiennych środowiskowich przebiega identycznie jak w poprzednim punkcie.
+
+##### Managed Identity
+W ramach usług app service
+1. Wybieramy zakładkę *Settings > Identity*.
+2. Przełączamy pole *Status* na **ON**.
+3. Klikamy *Save*.
+
+<img width="1719" height="772" alt="Pasted image 20260121135401" src="https://github.com/user-attachments/assets/4fb50669-f3f3-4793-8958-076ce7a72b0d" />
+
+W ramach Storage Account
+1. Wybieramy zakładkę *Access Controll (IAM)*.
+2. Rozwijamy menu *Add* i wybieramy opcję *Add role assignment*.
+3. W panelu *Role* wyszukujemy i wybieramy rolę **Storage Blob Data Contributor**.
+4. W panelu members wybieramy opcję *Managed Identity* i wybieramy tożsamość utworzoną dla naszej aplikacji webowej.
+
+<img width="1719" height="618" alt="Pasted image 20260121140449" src="https://github.com/user-attachments/assets/9f734075-ee40-40fc-b117-5e79cdadf5e1" />
+
+5. Klikamy *Review and Assign*
+
+##### Deployment
+Podobnie jak w przypadku poprzedniego punktu, zlecamy deployment poprzez zmergowanie PR z brancha `blob-storage` do `main`.
+
+Powinniśmy otrzymać następujące rezultaty:
+<img width="1070" height="429" alt="Pasted image 20260121141253" src="https://github.com/user-attachments/assets/cdcc4e63-80af-4ba1-86dc-8b5d134e5572" />
+<img width="1720" height="862" alt="Pasted image 20260121141420" src="https://github.com/user-attachments/assets/9db62c74-de52-4534-b0ce-b090255a0df8" />
+
+## Sprawozdanie
+W sprawozdaniu proszę zamieścić 3 zrzuty ekranu:
+- Utworzona grupa zasobów wraz z podlegającymi pod nią zasobami
+- Widok zdeployowanej aplikacji
+- Załadowany plik transakcji w kontenerze Blob Storage.
 
 ### Usunięcie zaalokowanych zasobów
 W celu uniknięcia naliczania kosztów, po zakończonym laboratorium, usuwamy całą grupę zasobów.
